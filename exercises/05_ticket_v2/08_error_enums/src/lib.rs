@@ -1,14 +1,22 @@
 // TODO: Use two variants, one for a title error and one for a description error.
 //   Each variant should contain a string with the explanation of what went wrong exactly.
 //   You'll have to update the implementation of `Ticket::new` as well.
-enum TicketNewError {}
+enum TicketNewError {
+    TitleEmpty { message: String },
+    TitleTooLong { message: String }
+}
 
 // TODO: `easy_ticket` should panic when the title is invalid, using the error message
 //   stored inside the relevant variant of the `TicketNewError` enum.
 //   When the description is invalid, instead, it should use a default description:
 //   "Description not provided".
 fn easy_ticket(title: String, description: String, status: Status) -> Ticket {
-    todo!()
+    let opTicket: Result<Ticket, TicketNewError> = Ticket::new(title, description, status);
+    match opTicket {
+        Ok(ticket) => ticket,
+        Err(TicketNewError::TitleEmpty { message }) => panic!("{}", message),
+        Err(TicketNewError::TitleTooLong { message }) => panic!("{}", message),
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -32,16 +40,14 @@ impl Ticket {
         status: Status,
     ) -> Result<Ticket, TicketNewError> {
         if title.is_empty() {
-            return Err("Title cannot be empty".to_string());
+            return Err(TicketNewError::TitleEmpty { message: "Title cannot be empty".to_string() });
         }
         if title.len() > 50 {
-            return Err("Title cannot be longer than 50 bytes".to_string());
+            return Err(TicketNewError::TitleTooLong { message: "Title cannot be longer than 50 bytes".to_string() });
         }
-        if description.is_empty() {
-            return Err("Description cannot be empty".to_string());
-        }
-        if description.len() > 500 {
-            return Err("Description cannot be longer than 500 bytes".to_string());
+        if description.is_empty() || description.len() > 500 {
+            let default_description: String = "Description not provided".to_string();
+            return Ok(Ticket { title, description: default_description, status});
         }
 
         Ok(Ticket {
